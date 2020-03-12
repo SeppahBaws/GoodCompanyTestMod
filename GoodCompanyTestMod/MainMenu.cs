@@ -79,7 +79,7 @@ namespace GoodCompanyTestMod
 		static void Postfix(MainMenu __instance, TMP_Text ____version)
 		{
 			____version.color = Color.magenta;
-			____version.text = "Test Test";
+			// ____version.text = "Test Test";
 			ModLogger.Log("Toggled settings menu!");
 		}
 	}
