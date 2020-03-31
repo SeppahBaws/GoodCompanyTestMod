@@ -143,9 +143,16 @@ namespace GoodCompanyTestMod
 		{
 			GUI.Label(new Rect(20, 20, 300, 20), $"{_inspectedObjChildren.Count} children in {_inspectedObject.name}");
 
+			if (GUI.Button(new Rect(20, 45, 100, 20), "Dump Object"))
+			{
+				const string path = @"E:/GoodCompanyDump.txt";
+				SceneDumper.Dump(_inspectedObject, path);
+				ModLogger.Log($"Object {_inspectedObject} dumped to {path}");
+			}
+
 			if (_inspectedObject.transform.parent)
 			{
-				if (GUI.Button(new Rect(20, 45, 100, 20), "View parent"))
+				if (GUI.Button(new Rect(130, 45, 100, 20), "View parent"))
 				{
 					SelectInspectObject(_inspectedObject.transform.parent.gameObject);
 				}
@@ -162,7 +169,14 @@ namespace GoodCompanyTestMod
 				{
 					SelectInspectObject(_inspectedObjChildren[i].gameObject);
 				}
-				GUI.Label(new Rect(30, yPos, 300, 20), _inspectedObjChildren[i].gameObject.name);
+
+				if (GUI.Button(new Rect(25, yPos, 20, 20), "x"))
+				{
+					GameObject.Destroy(_inspectedObjChildren[i].gameObject);
+					SelectInspectObject(_inspectedObject);
+				}
+
+				GUI.Label(new Rect(50, yPos, 300, 20), _inspectedObjChildren[i].gameObject.name);
 			}
 			GUI.EndScrollView(true);
 

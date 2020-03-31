@@ -40,24 +40,40 @@ namespace GoodCompanyTestMod
 		}
 	}
 
+	class ModsPanel : MonoBehaviour
+	{
+		public void Initialize()
+		{
+		}
+	}
+
 	[HarmonyPatch(typeof(MainMenu))]
 	[HarmonyPatch("Initialize")]
 	class MainMenu_Initialize_Patch
 	{
-		static void Postfix(MainMenu __instance, ref GUIButtonMainmenu ____quitGameBtn,
-			MainMenu.IControl ____control, ref TMP_Text ____version)
+		private static GUIButtonMainmenu _modsButton;
+		private static ModsPanel _modsPanel;
+
+		private static GameObject _testObj;
+		
+		static void Postfix(MainMenu __instance,
+			ref GUIButtonMainmenu ____quitGameBtn,
+			GUIButtonMainmenu ____settingsBtn,
+			Settings ____settings,
+			MainMenu.IControl ____control,
+			ref TMP_Text ____version)
 		{
 			____version.color = Color.magenta;
 			____version.margin = Vector4.one;
 			____version.transform.position = new Vector3(-10, 5, 1);
 
 			// Don't show the disclaimer when going to the main menu
-			typeof(MainMenu).GetMethod("ShowDisclaimer", BindingFlags.NonPublic | BindingFlags.Instance)
-				.Invoke(__instance, new object[] { false });
+			// typeof(MainMenu).GetMethod("ShowDisclaimer", BindingFlags.NonPublic | BindingFlags.Instance)
+			// 	.Invoke(__instance, new object[] { false });
 
-
-			____quitGameBtn.OnClick.RemoveAllListeners();
-			____quitGameBtn.OnClick.AddListener(new UnityAction(____control.QuitToDesktop));
+			// Removes the "are you sure you want to quit" warning
+			// ____quitGameBtn.OnClick.RemoveAllListeners();
+			// ____quitGameBtn.OnClick.AddListener(new UnityAction(____control.QuitToDesktop));
 
 
 			// Instantiate the text
@@ -67,6 +83,51 @@ namespace GoodCompanyTestMod
 			// modInfoText.color = new Color(200, 200, 200);
 
 			// GUIButtonSimple btn = new GUIButtonSimple();
+
+			GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(____settings.gameObject);
+			UnityEngine.Object.Destroy((UnityEngine.Object)gameObject.GetComponent<ChooseSaveLoadFile>());
+			MainMenu_Initialize_Patch._modsPanel = gameObject.AddComponent<ModsPanel>();
+			MainMenu_Initialize_Patch._modsPanel.Initialize();
+			MainMenu_Initialize_Patch._modsButton = UnityEngine.Object.Instantiate<GUIButtonMainmenu>(____settingsBtn);
+			MainMenu_Initialize_Patch._modsButton.name = "ModsBtn";
+			MainMenu_Initialize_Patch._modsButton.transform.SetParent(____settingsBtn.transform.parent);
+			MainMenu_Initialize_Patch._modsButton.transform.position += Vector3.up * 50f;
+			MainMenu_Initialize_Patch._modsButton.GetComponentInChildren<TextMeshProUGUI>(true).text = "Mods";
+			MainMenu_Initialize_Patch._modsButton.GetComponentInChildren<LocalizeThis>().enabled = false;
+			MainMenu_Initialize_Patch._modsButton.transform.SetSiblingIndex(MainMenu_Initialize_Patch._modsButton.transform.GetSiblingIndex() - 1);
+			MainMenu_Initialize_Patch._modsButton.OnClick.AddListener((UnityAction)(() =>
+			{
+				if (!MainMenu_Initialize_Patch._modsPanel.gameObject.activeSelf)
+				{
+					ModLogger.Log("{ModsPanel} Opening!");
+					MainMenu_Initialize_Patch._modsPanel.Initialize();
+					typeof(MainMenu).GetMethod("ShowContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, new object[2]
+					{
+						(object) MainMenu_Initialize_Patch._modsPanel.gameObject,
+						(object) MainMenu_Initialize_Patch._modsButton
+					});
+				}
+				else
+				{
+					ModLogger.Log("{ModsPanel} Closing!");
+					typeof(MainMenu).GetMethod("HideCurrentContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, (object[])null);
+				}
+			}));
+
+			// Test player character in main menu.
+			// CharacterLookManager.
+			_testObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			_testObj.transform.Translate(0, 0, 0);
+			_testObj.transform.localScale = Vector3.one * 10.0f;
+
+			Transform startRoot = Camera.main.gameObject.transform.parent;
+			FollowCamera followCam = GameObject.Instantiate(new FollowCamera());
+			followCam.transform.SetParent(startRoot);
+			Camera.main.enabled = false;
+			followCam.MainCamera.enabled = true;
+			followCam.SetTargetObject(_testObj.transform);
+			// Camera.main.GetComponent<FollowCamera>().SetTargetObject(_testObj.transform);
+			// End Test player character in main menu
 
 			ModLogger.Log("Main menu initialized! version text should be magenta now.");
 		}
