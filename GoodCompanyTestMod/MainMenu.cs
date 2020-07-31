@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 using HarmonyLib;
@@ -61,6 +62,7 @@ namespace GoodCompanyTestMod
 			GUIButtonMainmenu ____settingsBtn,
 			Settings ____settings,
 			MainMenu.IControl ____control,
+			ref MainMenu.SessionType ____sessionType,
 			ref TMP_Text ____version)
 		{
 			____version.color = Color.magenta;
@@ -97,28 +99,39 @@ namespace GoodCompanyTestMod
 			MainMenu_Initialize_Patch._modsButton.transform.SetSiblingIndex(MainMenu_Initialize_Patch._modsButton.transform.GetSiblingIndex() - 1);
 			MainMenu_Initialize_Patch._modsButton.OnClick.AddListener((UnityAction)(() =>
 			{
-				if (!MainMenu_Initialize_Patch._modsPanel.gameObject.activeSelf)
-				{
-					ModLogger.Log("{ModsPanel} Opening!");
-					MainMenu_Initialize_Patch._modsPanel.Initialize();
-					typeof(MainMenu).GetMethod("ShowContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, new object[2]
-					{
-						(object) MainMenu_Initialize_Patch._modsPanel.gameObject,
-						(object) MainMenu_Initialize_Patch._modsButton
-					});
-				}
-				else
-				{
-					ModLogger.Log("{ModsPanel} Closing!");
-					typeof(MainMenu).GetMethod("HideCurrentContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, (object[])null);
-				}
+				// if (!MainMenu_Initialize_Patch._modsPanel.gameObject.activeSelf)
+				// {
+				// 	ModLogger.Log("{ModsPanel} Opening!");
+				// 	MainMenu_Initialize_Patch._modsPanel.Initialize();
+				// 	typeof(MainMenu).GetMethod("ShowContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, new object[2]
+				// 	{
+				// 		(object) MainMenu_Initialize_Patch._modsPanel.gameObject,
+				// 		(object) MainMenu_Initialize_Patch._modsButton
+				// 	});
+				// }
+				// else
+				// {
+				// 	ModLogger.Log("{ModsPanel} Closing!");
+				// 	typeof(MainMenu).GetMethod("HideCurrentContent", BindingFlags.Instance | BindingFlags.NonPublic).Invoke((object)__instance, (object[])null);
+				// }
+
+				____control.StartHeadstartGame();
 			}));
 
 			// Test player character in main menu.
 			// CharacterLookManager.
-			_testObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			_testObj.transform.Translate(0, 0, 0);
-			_testObj.transform.localScale = Vector3.one * 10.0f;
+
+			// Test spawn object.
+			// _testObj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			// _testObj.transform.Translate(0, 0, 0);
+			// _testObj.transform.localScale = Vector3.one * 10.0f;
+			
+			// AssetBundle test
+			// AssetBundle myAssetBundle = AssetBundle.LoadFromFile(Path.Combine(Application.dataPath, "../CustomAssets/mytestbundle"));
+			// var prefab = myAssetBundle.LoadAsset<GameObject>("test");
+			// _testObj = GameObject.Instantiate(prefab);
+			// _testObj.transform.Translate(0, 0, 0);
+			// _testObj.transform.localScale = Vector3.one * 5.0f;
 
 			Transform startRoot = Camera.main.gameObject.transform.parent;
 			FollowCamera followCam = GameObject.Instantiate(new FollowCamera());
@@ -145,45 +158,45 @@ namespace GoodCompanyTestMod
 		}
 	}
 
-	// /// <summary>
-	// /// Shows all the buttons on the main menu
-	// /// Note: this fills the entire screen, so I don't recommend using this.
-	// /// </summary>
-	// [HarmonyPatch(typeof(MainMenu))]
-	// [HarmonyPatch("UpdateButtonStates")]
-	// class MainMenu_UpdateButtonStates_Patch
-	// {
-	// 	static void Postfix(
-	// 		MainMenu __instance,
-	// 		ref GUIButtonMainmenu ____singleBtn,
-	// 		ref GUIButtonMainmenu ____headstartBtn,
-	// 		ref GUIButtonMainmenu ____levelsBtn,
-	// 		ref GUIButtonMainmenu ____multiBtn,
-	// 		ref GUIButtonMainmenu ____saveBtn,
-	// 		ref GUIButtonMainmenu ____saveAsBtn,
-	// 		ref GUIButtonMainmenu ____loadBtn,
-	// 		ref GUIButtonMainmenu ____joinBtn,
-	// 		ref GUIButtonMainmenu ____settingsBtn,
-	// 		ref GUIButtonMainmenu ____aboutBtn,
-	// 		ref GUIButtonMainmenu ____backToMapBtn,
-	// 		ref GUIButtonMainmenu ____quitSessionBtn,
-	// 		ref GUIButtonMainmenu ____quitGameBtn,
-	// 		ref GUIButtonMainmenu ____resumeBtn)
-	// 	{
-	// 		____singleBtn.gameObject.SetActive(true);
-	// 		____headstartBtn.gameObject.SetActive(true);
-	// 		____levelsBtn.gameObject.SetActive(true);
-	// 		____multiBtn.gameObject.SetActive(true);
-	// 		____saveBtn.gameObject.SetActive(true);
-	// 		____saveAsBtn.gameObject.SetActive(true);
-	// 		____loadBtn.gameObject.SetActive(true);
-	// 		____joinBtn.gameObject.SetActive(true);
-	// 		____settingsBtn.gameObject.SetActive(true);
-	// 		____aboutBtn.gameObject.SetActive(true);
-	// 		____backToMapBtn.gameObject.SetActive(true);
-	// 		____quitSessionBtn.gameObject.SetActive(true);
-	// 		____quitGameBtn.gameObject.SetActive(true);
-	// 		____resumeBtn.gameObject.SetActive(true);
-	// 	}
-	// }
+	/// <summary>
+	/// Shows all the buttons on the main menu
+	/// Note: this fills the entire screen, so I don't recommend using this.
+	/// </summary>
+	[HarmonyPatch(typeof(MainMenu))]
+	[HarmonyPatch("UpdateButtonStates")]
+	class MainMenu_UpdateButtonStates_Patch
+	{
+		static void Postfix(
+			MainMenu __instance,
+			ref GUIButtonMainmenu ____singleBtn,
+			ref GUIButtonMainmenu ____headstartBtn,
+			ref GUIButtonMainmenu ____levelsBtn,
+			ref GUIButtonMainmenu ____multiBtn,
+			ref GUIButtonMainmenu ____saveBtn,
+			ref GUIButtonMainmenu ____saveAsBtn,
+			ref GUIButtonMainmenu ____loadBtn,
+			ref GUIButtonMainmenu ____joinBtn,
+			ref GUIButtonMainmenu ____settingsBtn,
+			ref GUIButtonMainmenu ____aboutBtn,
+			ref GUIButtonMainmenu ____backToMapBtn,
+			ref GUIButtonMainmenu ____quitSessionBtn,
+			ref GUIButtonMainmenu ____quitGameBtn,
+			ref GUIButtonMainmenu ____resumeBtn)
+		{
+			// ____singleBtn.gameObject.SetActive(true);
+			____headstartBtn.gameObject.SetActive(true);
+			// ____levelsBtn.gameObject.SetActive(true);
+			// ____multiBtn.gameObject.SetActive(true);
+			// ____saveBtn.gameObject.SetActive(true);
+			// ____saveAsBtn.gameObject.SetActive(true);
+			// ____loadBtn.gameObject.SetActive(true);
+			// ____joinBtn.gameObject.SetActive(true);
+			// ____settingsBtn.gameObject.SetActive(true);
+			// ____aboutBtn.gameObject.SetActive(true);
+			// ____backToMapBtn.gameObject.SetActive(true);
+			// ____quitSessionBtn.gameObject.SetActive(true);
+			// ____quitGameBtn.gameObject.SetActive(true);
+			// ____resumeBtn.gameObject.SetActive(true);
+		}
+	}
 }

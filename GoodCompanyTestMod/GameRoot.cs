@@ -38,4 +38,16 @@ namespace GoodCompanyTestMod
 			__result += " Modded";
 		}
 	}
+
+	[HarmonyPatch(typeof(MessageSender))]
+	[HarmonyPatch("SendUnlockBuildingMessage")]
+	class MessageSender_SendUnlockBuildingMessage_Patch
+	{
+		static bool Prefix(uint buildingID)
+		{
+			ModLogger.Log($"Unlocking Building ID: {buildingID}");
+
+			return false; // Skip the actual building unlocking stuff
+		}
+	}
 }
